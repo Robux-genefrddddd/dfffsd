@@ -370,6 +370,19 @@ export default function Admin() {
                 Configuration IA
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab("system")}
+              className={`py-4 px-2 border-b-2 transition-all ${
+                activeTab === "system"
+                  ? "border-white text-white"
+                  : "border-transparent text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Shield size={18} />
+                Système
+              </div>
+            </button>
           </div>
         </div>
       </div>
