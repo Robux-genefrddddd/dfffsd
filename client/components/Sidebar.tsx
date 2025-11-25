@@ -158,6 +158,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           style={{ animationDelay: "0.1s" }}
         >
           <button
+            id="new-conversation-btn"
             onClick={handleNewConversation}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-white/40 text-foreground/70 hover:border-white/70 hover:text-foreground hover:bg-white/5 transition-all text-xs font-medium rounded-lg"
           >
