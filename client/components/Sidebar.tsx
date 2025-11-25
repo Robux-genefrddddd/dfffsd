@@ -144,8 +144,12 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             {conversations.map((conv, idx) => (
               <div
                 key={conv.id}
-                className="group"
-                style={{ animationDelay: `${0.2 + idx * 0.05}s` }}
+                className="group transition-all duration-300"
+                style={{
+                  animationDelay: `${0.2 + idx * 0.05}s`,
+                  opacity: conv.isDeleting ? 0 : 1,
+                  transform: conv.isDeleting ? "translateX(-10px)" : "translateX(0)",
+                }}
               >
                 <div className={`flex items-center gap-2 px-2 py-2 rounded-lg border-2 transition-all ${
                   conv.active
