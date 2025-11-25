@@ -95,6 +95,7 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       toast.success("Utilisateur débanni");
       await loadBans();
     } catch (error) {
+      console.error("Error in handleUnbanUser:", error);
       toast.error("Erreur lors du déban");
     }
   };
