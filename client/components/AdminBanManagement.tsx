@@ -90,7 +90,8 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       await loadBans();
     } catch (error) {
       console.error("Error in handleBanUser:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'action";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors de l'action";
       toast.error(errorMessage);
     } finally {
       setSavingBan(false);
@@ -104,7 +105,8 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       await loadBans();
     } catch (error) {
       console.error("Error in handleUnbanUser:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors du déban";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors du déban";
       toast.error(errorMessage);
     }
   };
@@ -130,7 +132,8 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       await loadBans();
     } catch (error) {
       console.error("Error in handleBanIP:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors du ban IP";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors du ban IP";
       toast.error(errorMessage);
     } finally {
       setSavingIPBan(false);
@@ -144,7 +147,8 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       await loadBans();
     } catch (error) {
       console.error("Error in handleUnbanIP:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors du déban IP";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors du déban IP";
       toast.error(errorMessage);
     }
   };

@@ -262,7 +262,9 @@ export function ChatArea({ conversationId }: ChatAreaProps) {
         className="px-6 py-6 animate-slideUp"
         style={{ animationDelay: "0.2s" }}
       >
-        <div className={`flex items-center gap-3 border-2 border-white rounded-2xl px-4 py-3 bg-background/50 transition-colors group ${!conversationId ? "opacity-50 cursor-not-allowed" : "hover:border-white/80"}`}>
+        <div
+          className={`flex items-center gap-3 border-2 border-white rounded-2xl px-4 py-3 bg-background/50 transition-colors group ${!conversationId ? "opacity-50 cursor-not-allowed" : "hover:border-white/80"}`}
+        >
           <input
             id="message-input"
             type="text"
@@ -275,7 +277,9 @@ export function ChatArea({ conversationId }: ChatAreaProps) {
               }
             }}
             disabled={!conversationId || loading}
-            placeholder={conversationId ? "Message..." : "Sélectionnez une conversation..."}
+            placeholder={
+              conversationId ? "Message..." : "Sélectionnez une conversation..."
+            }
             className="flex-1 bg-transparent text-foreground placeholder-foreground/50 focus:outline-none text-sm leading-relaxed disabled:opacity-50"
           />
 

@@ -76,7 +76,8 @@ export function LicenseActivationModal({
               Licence activée!
             </p>
             <p className="text-sm text-foreground/60 text-center">
-              Votre plan a été mis à jour. Vous pouvez continuer à utiliser l'IA.
+              Votre plan a été mis à jour. Vous pouvez continuer à utiliser
+              l'IA.
             </p>
           </div>
         ) : (
@@ -107,8 +108,8 @@ export function LicenseActivationModal({
                   className="text-white/60 flex-shrink-0 mt-0.5"
                 />
                 <p className="text-xs text-foreground/60">
-                  Vous n'avez pas de clé? Contactez l'administrateur pour obtenir
-                  une licence.
+                  Vous n'avez pas de clé? Contactez l'administrateur pour
+                  obtenir une licence.
                 </p>
               </div>
             </div>
