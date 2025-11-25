@@ -322,12 +322,12 @@ export default function Admin() {
                               <input
                                 type="number"
                                 value={
-                                  editData.messagesUsed ?? user.messagesUsed
+                                  editData.messagesUsed !== undefined ? editData.messagesUsed : (user.messagesUsed || 0)
                                 }
                                 onChange={(e) =>
                                   setEditData({
                                     ...editData,
-                                    messagesUsed: parseInt(e.target.value),
+                                    messagesUsed: parseInt(e.target.value, 10) || 0,
                                   })
                                 }
                                 className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm w-20"
