@@ -1,6 +1,13 @@
-import { Plus, LogOut, MoreVertical, Zap } from "lucide-react";
+import { Plus, LogOut, MoreVertical, Trash2, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+interface Conversation {
+  id: number;
+  name: string;
+  active: boolean;
+}
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -8,11 +15,48 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
-  const [conversations] = useState([
+  const [conversations, setConversations] = useState<Conversation[]>([
     { id: 1, name: "New Conversation", active: true },
   ]);
   const [messagesUsed] = useState(7);
   const [messagesLimit] = useState(15);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleNewConversation = () => {
+    const newId = Math.max(...conversations.map(c => c.id), 0) + 1;
+    const newConversation: Conversation = {
+      id: newId,
+      name: `Conversation ${newId}`,
+      active: false,
+    };
+    setConversations([...conversations, newConversation]);
+  };
+
+  const handleDeleteConversation = (id: number) => {
+    setConversations(conversations.filter(c => c.id !== id));
+    setEditingId(null);
+  };
+
+  const handleEditConversation = (id: number, currentName: string) => {
+    setEditingId(id);
+    setEditName(currentName);
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editName.trim()) {
+      setConversations(
+        conversations.map(c =>
+          c.id === editingId ? { ...c, name: editName } : c
+        )
+      );
+    }
+    setIsDialogOpen(false);
+    setEditingId(null);
+    setEditName("");
+  };
 
   return (
     <>
