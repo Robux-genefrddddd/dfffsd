@@ -1,29 +1,7 @@
 import { Request, Response } from "express";
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD7KlxN05OoSCGHwjXhiiYyKF5bOXianLY",
-  authDomain: "keysystem-d0b86-8df89.firebaseapp.com",
-  projectId: "keysystem-d0b86-8df89",
-  storageBucket: "keysystem-d0b86-8df89.firebasestorage.app",
-  messagingSenderId: "1048409565735",
-  appId: "1:1048409565735:web:5a9f5422826949490dfc02",
-  measurementId: "G-GK1R043YTV",
-};
-
-let db: any;
-
-function initializeFirebase() {
-  if (!db) {
-    const apps = getApps();
-    if (apps.length === 0) {
-      initializeApp(firebaseConfig);
-    }
-    db = getFirestore();
-  }
-  return db;
-}
+const PROJECT_ID = "keysystem-d0b86-8df89";
+const API_KEY = "AIzaSyD7KlxN05OoSCGHwjXhiiYyKF5bOXianLY";
 
 export async function handleActivateLicense(req: Request, res: Response) {
   const { licenseKey } = req.body;
@@ -35,21 +13,57 @@ export async function handleActivateLicense(req: Request, res: Response) {
   }
 
   try {
-    const firestore = initializeFirebase();
-    const licensesRef = collection(firestore, "licenses");
-    const q = query(licensesRef, where("key", "==", licenseKey.trim()));
-    const querySnapshot = await getDocs(q);
+    const trimmedKey = licenseKey.trim();
 
-    if (querySnapshot.empty) {
+    // Query Firestore REST API for licenses with matching key
+    const query = {
+      structuredQuery: {
+        from: [{ collectionId: "licenses" }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: "key" },
+            op: "EQUAL",
+            value: { stringValue: trimmedKey },
+          },
+        },
+      },
+    };
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery?key=${API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(query),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Firestore API error:", await response.text());
+      return res.status(500).json({
+        message: "Erreur serveur lors de l'activation",
+      });
+    }
+
+    const results = await response.json();
+
+    // Check if any documents were found
+    const documents = results
+      .filter((result: any) => result.document)
+      .map((result: any) => result.document);
+
+    if (documents.length === 0) {
       return res.status(400).json({
         message: "Clé de licence invalide",
       });
     }
 
-    const licenseDoc = querySnapshot.docs[0];
-    const licenseData = licenseDoc.data();
+    const licenseDoc = documents[0];
+    const licenseData = licenseDoc.fields;
 
-    if (licenseData.isActive === false) {
+    // Check if license is active
+    const isActive = licenseData.isActive?.booleanValue !== false;
+    if (!isActive) {
       return res.status(400).json({
         message: "Clé de licence désactivée",
       });
@@ -57,7 +71,7 @@ export async function handleActivateLicense(req: Request, res: Response) {
 
     return res.status(200).json({
       message: "Licence activée avec succès",
-      licenseId: licenseDoc.id,
+      licenseId: licenseDoc.name.split("/").pop(),
     });
   } catch (error) {
     console.error("Error activating license:", error);
