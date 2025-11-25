@@ -7,12 +7,15 @@ interface Conversation {
   id: number;
   name: string;
   active: boolean;
+  isDeleting?: boolean;
 }
 
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
+
+type PlanType = "Free" | "Classic" | "Pro";
 
 export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -23,6 +26,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentPlan] = useState<PlanType>("Pro");
 
   const handleNewConversation = () => {
     const newId = Math.max(...conversations.map(c => c.id), 0) + 1;
@@ -35,8 +39,15 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   };
 
   const handleDeleteConversation = (id: number) => {
-    setConversations(conversations.filter(c => c.id !== id));
-    setEditingId(null);
+    setConversations(
+      conversations.map(c =>
+        c.id === id ? { ...c, isDeleting: true } : c
+      )
+    );
+    setTimeout(() => {
+      setConversations(prev => prev.filter(c => c.id !== id));
+      setEditingId(null);
+    }, 300);
   };
 
   const handleEditConversation = (id: number, currentName: string) => {
