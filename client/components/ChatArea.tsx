@@ -35,7 +35,16 @@ export function ChatArea() {
       <div className="flex-1 overflow-y-auto flex items-center justify-center p-6">
         <div className="text-center">
           {/* Placeholder for empty state */}
-          <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+          <div
+            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+            style={{
+              backgroundImage:
+                "url(https://cdn.builder.io/api/v1/image/assets%2Fafa67d28f8874020a08a6dc1ed05801d%2F340d671f0c4b45db8b30096668d2bc7c)",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            }}
+          >
             <span className="text-2xl text-muted-foreground">✨</span>
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-2">
