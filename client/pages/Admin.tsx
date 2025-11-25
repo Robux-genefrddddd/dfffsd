@@ -63,6 +63,8 @@ export default function Admin() {
   const [generatingLicense, setGeneratingLicense] = useState(false);
   const [selectedPlanForGeneration, setSelectedPlanForGeneration] =
     useState<PlanType>("Classic");
+  const [validityDaysForGeneration, setValidityDaysForGeneration] =
+    useState<number>(7);
   const [savingAiConfig, setSavingAiConfig] = useState(false);
   const [userEmailToBan, setUserEmailToBan] = useState("");
   const [banReason, setBanReason] = useState("");
@@ -79,8 +81,8 @@ export default function Admin() {
 
   const planLimits: Record<PlanType, number> = {
     Free: 10,
-    Classic: 50,
-    Pro: 999,
+    Classic: 500,
+    Pro: 1000,
   };
 
   useEffect(() => {
@@ -183,11 +185,17 @@ export default function Admin() {
   const handleGenerateLicense = async () => {
     if (!userData?.uid) return;
 
+    if (validityDaysForGeneration <= 0) {
+      toast.error("La durée doit être au moins 1 jour");
+      return;
+    }
+
     setGeneratingLicense(true);
     try {
       const newKey = await generateLicenseKey(
         selectedPlanForGeneration,
         userData.uid,
+        validityDaysForGeneration,
       );
       await loadLicenses();
       toast.success(`Clé générée: ${newKey}`);
