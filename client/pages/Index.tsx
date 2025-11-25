@@ -67,6 +67,16 @@ export default function Index() {
     );
   }
 
+  // Show message limit modal (non-dismissible)
+  if (userData && userData.messagesUsed >= userData.messagesLimit) {
+    return (
+      <MessageLimitModal
+        messagesUsed={userData.messagesUsed}
+        messagesLimit={userData.messagesLimit}
+      />
+    );
+  }
+
   // Show maintenance modal (dismissible)
   if (maintenanceNotice && !acknowledgedMaintenance) {
     return (
