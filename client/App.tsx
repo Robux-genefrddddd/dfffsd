@@ -56,7 +56,7 @@ function AppRoutes() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "F1") {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "A") {
         e.preventDefault();
         if (userData?.isAdmin) {
           navigate("/admin");
