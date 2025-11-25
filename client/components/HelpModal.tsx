@@ -14,44 +14,44 @@ interface HelpModalProps {
 
 const TUTORIAL_STEPS = [
   {
-    title: "Welcome to the Chat",
+    title: "Bienvenue dans le Chat",
     description:
-      "This is your intelligent chat interface. You can have conversations with AI and manage multiple chats.",
+      "Ceci est votre interface de chat intelligente. Vous pouvez converser avec l'IA et gérer plusieurs conversations.",
     highlight: "main",
     image: "✨",
   },
   {
-    title: "Create New Conversations",
+    title: "Créer Nouvelles Conversations",
     description:
-      "Click the 'New conversation' button in the sidebar to start a fresh chat. Each conversation is saved separately.",
+      "Cliquez sur le bouton 'Nouvelle conversation' dans la barre latérale pour commencer un nouveau chat. Chaque conversation est enregistrée séparément.",
     highlight: "newChat",
     image: "➕",
   },
   {
-    title: "Manage Your Chats",
+    title: "Gérer Vos Conversations",
     description:
-      "Hover over any conversation to see edit and delete options. Rename conversations or remove ones you no longer need.",
+      "Survolez n'importe quelle conversation pour voir les options de modification et de suppression. Renommez les conversations ou supprimez celles que vous n'avez plus besoin.",
     highlight: "conversations",
     image: "✏️",
   },
   {
-    title: "Send Messages",
+    title: "Envoyer des Messages",
     description:
-      "Type your message in the input box at the bottom. Press Enter to send, or use Shift+Enter for a new line.",
+      "Tapez votre message dans la boîte de saisie en bas. Appuyez sur Entrée pour envoyer, ou utilisez Maj+Entrée pour une nouvelle ligne.",
     highlight: "input",
     image: "💬",
   },
   {
-    title: "Emoji Support",
+    title: "Support Emoji",
     description:
-      "Click the smile icon to add emojis to your messages. Make your conversations more expressive!",
+      "Cliquez sur l'icône du sourire pour ajouter des emojis à vos messages. Rendez vos conversations plus expressives!",
     highlight: "emoji",
     image: "😊",
   },
   {
-    title: "Check Your Usage",
+    title: "Vérifiez Votre Utilisation",
     description:
-      "The message counter shows how many messages you have left. Upgrade your plan for more messages.",
+      "Le compteur de messages affiche le nombre de messages qu'il vous reste. Améliorez votre plan pour plus de messages.",
     highlight: "messages",
     image: "📊",
   },
