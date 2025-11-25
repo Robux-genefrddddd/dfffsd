@@ -82,6 +82,7 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
       setBanDuration(null);
       await loadBans();
     } catch (error) {
+      console.error("Error in handleBanUser:", error);
       toast.error("Erreur lors de l'action");
     } finally {
       setSavingBan(false);
