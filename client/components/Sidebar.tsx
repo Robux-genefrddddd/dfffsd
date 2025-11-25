@@ -230,6 +230,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
         {/* Message Usage Section */}
         <div
+          id="messages-counter"
           className="px-4 py-4 border-t border-white/10 animate-fadeIn"
           style={{ animationDelay: "0.25s" }}
         >
