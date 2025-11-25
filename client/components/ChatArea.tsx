@@ -154,10 +154,37 @@ export function ChatArea({ conversationId }: ChatAreaProps) {
     <div id="chat-area" className="flex-1 flex flex-col bg-background">
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto flex flex-col p-6 animate-fadeIn">
-        {chatMessages.length === 0 ? (
+        {!conversationId ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              {/* Placeholder for empty state */}
+              <div
+                className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-foreground/20 animate-scaleIn"
+                style={{
+                  backgroundImage:
+                    "url(https://cdn.builder.io/api/v1/image/assets%2Fafa67d28f8874020a08a6dc1ed05801d%2F340d671f0c4b45db8b30096668d2bc7c)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                  backgroundSize: "cover",
+                }}
+              />
+              <h2 className="text-lg font-semibold text-foreground mb-2 animate-slideUp">
+                Sélectionnez une conversation
+              </h2>
+              <p
+                className="text-sm text-foreground/60 animate-slideUp"
+                style={{ animationDelay: "0.1s" }}
+              >
+                Cliquez sur une conversation à gauche pour commencer
+              </p>
+            </div>
+          </div>
+        ) : loadingMessages ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
+          </div>
+        ) : chatMessages.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
               <div
                 className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-foreground/20 animate-scaleIn"
                 style={{
