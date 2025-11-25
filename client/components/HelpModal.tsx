@@ -1,65 +1,155 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useState } from "react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronRight, ChevronLeft, X } from "lucide-react";
 
 interface HelpModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const TUTORIAL_STEPS = [
+interface TutorialStep {
+  title: string;
+  description: string;
+  targetId: string;
+  arrowPosition: "top" | "bottom" | "left" | "right";
+  position: "top" | "bottom" | "left" | "right";
+}
+
+const TUTORIAL_STEPS: TutorialStep[] = [
   {
     title: "Bienvenue dans le Chat",
-    description:
-      "Ceci est votre interface de chat intelligente. Vous pouvez converser avec l'IA et gérer plusieurs conversations.",
-    highlight: "main",
-    image: "✨",
+    description: "Ceci est votre interface de chat intelligente. Commencez par explorer les différentes fonctionnalités!",
+    targetId: "chat-area",
+    arrowPosition: "top",
+    position: "bottom",
   },
   {
-    title: "Créer Nouvelles Conversations",
-    description:
-      "Cliquez sur le bouton 'Nouvelle conversation' dans la barre latérale pour commencer un nouveau chat. Chaque conversation est enregistrée séparément.",
-    highlight: "newChat",
-    image: "➕",
+    title: "Créer une Nouvelle Conversation",
+    description: "Cliquez ici pour démarrer une nouvelle conversation. Chacune est enregistrée séparément.",
+    targetId: "new-conversation-btn",
+    arrowPosition: "right",
+    position: "right",
   },
   {
     title: "Gérer Vos Conversations",
-    description:
-      "Survolez n'importe quelle conversation pour voir les options de modification et de suppression. Renommez les conversations ou supprimez celles que vous n'avez plus besoin.",
-    highlight: "conversations",
-    image: "✏️",
+    description: "Vos conversations apparaissent ici. Survolez pour modifier ou supprimer.",
+    targetId: "conversations-list",
+    arrowPosition: "right",
+    position: "right",
   },
   {
     title: "Envoyer des Messages",
-    description:
-      "Tapez votre message dans la boîte de saisie en bas. Appuyez sur Entrée pour envoyer, ou utilisez Maj+Entrée pour une nouvelle ligne.",
-    highlight: "input",
-    image: "💬",
+    description: "Tapez votre message ici. Appuyez sur Entrée pour envoyer ou Maj+Entrée pour une nouvelle ligne.",
+    targetId: "message-input",
+    arrowPosition: "top",
+    position: "top",
   },
   {
-    title: "Support Emoji",
-    description:
-      "Cliquez sur l'icône du sourire pour ajouter des emojis à vos messages. Rendez vos conversations plus expressives!",
-    highlight: "emoji",
-    image: "😊",
+    title: "Ajouter des Emojis",
+    description: "Cliquez sur ce sourire pour ajouter des emojis à vos messages et les rendre plus expressifs!",
+    targetId: "emoji-btn",
+    arrowPosition: "top",
+    position: "top",
   },
   {
     title: "Vérifiez Votre Utilisation",
-    description:
-      "Le compteur de messages affiche le nombre de messages qu'il vous reste. Améliorez votre plan pour plus de messages.",
-    highlight: "messages",
-    image: "📊",
+    description: "Le compteur montre combien de messages il vous reste. Améliorez votre plan pour plus de messages.",
+    targetId: "messages-counter",
+    arrowPosition: "top",
+    position: "top",
   },
 ];
 
+function Arrow({
+  position,
+  direction,
+}: {
+  position: { x: number; y: number };
+  direction: "top" | "bottom" | "left" | "right";
+}) {
+  const arrowVariants: Record<string, string> = {
+    top: "rotate-180",
+    bottom: "rotate-0",
+    left: "rotate-90",
+    right: "-rotate-90",
+  };
+
+  return (
+    <svg
+      className={`absolute w-8 h-8 text-white ${arrowVariants[direction]}`}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M7 14l5 5 5-5z" />
+      <defs>
+        <filter id="arrow-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
 export function HelpModal({ isOpen, onOpenChange }: HelpModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [arrowPos, setArrowPos] = useState({ x: 0, y: 0 });
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
   const step = TUTORIAL_STEPS[currentStep];
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePositions = () => {
+      const target = document.getElementById(step.targetId);
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        setTargetRect(rect);
+
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let arrowX = centerX;
+        let arrowY = centerY;
+        let tooltipX = centerX;
+        let tooltipY = centerY;
+
+        switch (step.arrowPosition) {
+          case "top":
+            arrowY = rect.top - 20;
+            tooltipY = rect.top - 100;
+            break;
+          case "bottom":
+            arrowY = rect.bottom + 20;
+            tooltipY = rect.bottom + 60;
+            break;
+          case "left":
+            arrowX = rect.left - 40;
+            tooltipX = rect.left - 200;
+            break;
+          case "right":
+            arrowX = rect.right + 40;
+            tooltipX = rect.right + 20;
+            break;
+        }
+
+        setArrowPos({ x: arrowX - 16, y: arrowY - 16 });
+        setTooltipPos({ x: tooltipX - 150, y: tooltipY });
+      }
+    };
+
+    updatePositions();
+    window.addEventListener("resize", updatePositions);
+    return () => window.removeEventListener("resize", updatePositions);
+  }, [isOpen, step.targetId, currentStep]);
 
   const handleNext = () => {
     if (currentStep < TUTORIAL_STEPS.length - 1) {
@@ -73,110 +163,102 @@ export function HelpModal({ isOpen, onOpenChange }: HelpModalProps) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-2 border-white rounded-xl max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-foreground text-lg">
-            Tutoriel & Aide
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm transition-opacity"
+        onClick={() => onOpenChange(false)}
+      />
 
-        <div className="mt-6">
-          {/* Image/Icon Section */}
-          <div className="flex justify-center mb-6 relative">
-            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center text-5xl border-2 border-white/30">
-              {step.image}
-            </div>
-            {/* Decorative arrow animation */}
-            <style>{`
-              @keyframes arrowBounce {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
-              }
-              .arrow-bounce {
-                animation: arrowBounce 2s infinite;
-              }
-            `}</style>
+      {/* Target Highlight */}
+      {targetRect && (
+        <div
+          className="fixed z-40 border-2 border-white/80 rounded-lg shadow-lg shadow-white/20 pointer-events-none transition-all"
+          style={{
+            left: `${targetRect.left - 8}px`,
+            top: `${targetRect.top - 8}px`,
+            width: `${targetRect.width + 16}px`,
+            height: `${targetRect.height + 16}px`,
+            boxShadow: "0 0 30px rgba(255, 255, 255, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.1)",
+          }}
+        />
+      )}
+
+      {/* Arrow Pointer */}
+      <Arrow position={arrowPos} direction={step.arrowPosition} />
+
+      {/* Tooltip */}
+      <div
+        className="fixed z-50 bg-card border-2 border-white/80 rounded-2xl p-5 max-w-xs shadow-2xl"
+        style={{
+          left: `${tooltipPos.x}px`,
+          top: `${tooltipPos.y}px`,
+          transform: "translate(0, 0)",
+        }}
+      >
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold text-white mb-1">
+              {step.title}
+            </h3>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              {step.description}
+            </p>
           </div>
 
-          {/* Content */}
-          <div className="space-y-4 mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {step.title}
-              </h3>
-              <p className="text-foreground/70 text-sm leading-relaxed">
-                {step.description}
-              </p>
-            </div>
-
-            {/* Professional Arrow Guide */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-white/5 to-white/10 rounded-lg border border-white/20 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-12 h-12 opacity-10">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-white">
-                  <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </div>
-              <div className="space-y-2 relative z-10">
-                <div className="flex items-center gap-2 text-xs text-foreground/70 font-medium">
-                  <span className="text-sm">→</span>
-                  <span>Conseil: Élément clé - <span className="font-semibold">{step.highlight}</span></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="mb-6">
-            <div className="flex gap-1">
+          {/* Progress */}
+          <div className="pt-2">
+            <div className="flex gap-1 mb-2">
               {TUTORIAL_STEPS.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`h-1 flex-1 rounded-full transition-all ${
+                  className={`h-1.5 flex-1 rounded-full transition-all ${
                     idx === currentStep
                       ? "bg-white"
                       : idx < currentStep
-                        ? "bg-white/50"
+                        ? "bg-white/60"
                         : "bg-white/20"
                   }`}
                 />
               ))}
             </div>
-            <p className="text-xs text-foreground/50 mt-2">
+            <p className="text-xs text-foreground/60">
               Étape {currentStep + 1} sur {TUTORIAL_STEPS.length}
             </p>
           </div>
 
           {/* Navigation */}
-          <div className="flex gap-3 justify-between">
+          <div className="flex gap-2 pt-2">
             <button
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-4 py-2 border border-white/30 rounded-lg text-foreground/70 hover:text-foreground hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs border border-white/40 rounded-lg text-foreground/80 hover:text-white hover:border-white/80 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={14} />
               Précédent
             </button>
 
             <button
               onClick={() => onOpenChange(false)}
-              className="px-4 py-2 text-foreground/70 hover:text-foreground hover:bg-white/5 rounded-lg transition-all text-sm"
+              className="ml-auto p-1.5 text-foreground/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             >
-              Fermer
+              <X size={16} />
             </button>
 
             <button
               onClick={handleNext}
               disabled={currentStep === TUTORIAL_STEPS.length - 1}
-              className="flex items-center gap-2 px-4 py-2 border border-white rounded-lg text-foreground hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs border border-white/80 rounded-lg text-white hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Suivant
-              <ChevronRight size={16} />
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
