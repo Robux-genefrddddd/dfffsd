@@ -26,15 +26,11 @@ import {
   AlertCircle,
   Clock,
   BarChart3,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserData, PlanType } from "@/contexts/AuthContext";
-import {
-  generateLicenseKey,
-  getAllLicenses,
-  deactivateLicense,
-  LicenseKey,
-} from "@/lib/licenses";
+import { getAllLicenses, deactivateLicense, LicenseKey } from "@/lib/licenses";
 import { AIService, AIConfig } from "@/lib/ai";
 import {
   SystemNoticesService,
@@ -43,6 +39,7 @@ import {
 } from "@/lib/system-notices";
 import AdminUsersList from "@/components/AdminUsersList";
 import AdminBanManagement from "@/components/AdminBanManagement";
+import { GenerateLicenseModal } from "@/components/GenerateLicenseModal";
 
 export default function Admin() {
   const { userData } = useAuth();
@@ -60,9 +57,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<UserData>>({});
-  const [generatingLicense, setGeneratingLicense] = useState(false);
-  const [selectedPlanForGeneration, setSelectedPlanForGeneration] =
-    useState<PlanType>("Classic");
+  const [showGenerateLicenseModal, setShowGenerateLicenseModal] =
+    useState(false);
   const [savingAiConfig, setSavingAiConfig] = useState(false);
   const [userEmailToBan, setUserEmailToBan] = useState("");
   const [banReason, setBanReason] = useState("");
@@ -79,8 +75,8 @@ export default function Admin() {
 
   const planLimits: Record<PlanType, number> = {
     Free: 10,
-    Classic: 50,
-    Pro: 999,
+    Classic: 500,
+    Pro: 1000,
   };
 
   useEffect(() => {
@@ -180,22 +176,8 @@ export default function Admin() {
     }
   };
 
-  const handleGenerateLicense = async () => {
-    if (!userData?.uid) return;
-
-    setGeneratingLicense(true);
-    try {
-      const newKey = await generateLicenseKey(
-        selectedPlanForGeneration,
-        userData.uid,
-      );
-      await loadLicenses();
-      toast.success(`Clé générée: ${newKey}`);
-    } catch (error) {
-      toast.error("Erreur lors de la génération de la clé");
-    } finally {
-      setGeneratingLicense(false);
-    }
+  const handleLicenseGenerated = async () => {
+    await loadLicenses();
   };
 
   const handleCopyLicense = (key: string) => {
@@ -429,34 +411,15 @@ export default function Admin() {
 
         {activeTab === "licenses" && (
           <>
-            {/* License Generation Section */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2 mb-6">
-                <Key size={20} />
+            {/* Generate License Button */}
+            <div className="mb-8">
+              <button
+                onClick={() => setShowGenerateLicenseModal(true)}
+                className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg border border-white/40 transition-all flex items-center gap-2"
+              >
+                <Plus size={20} />
                 Générer une nouvelle clé
-              </h2>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <select
-                  value={selectedPlanForGeneration}
-                  onChange={(e) =>
-                    setSelectedPlanForGeneration(e.target.value as PlanType)
-                  }
-                  className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white"
-                >
-                  <option value="Free">Free</option>
-                  <option value="Classic">Classic</option>
-                  <option value="Pro">Pro</option>
-                </select>
-
-                <button
-                  onClick={handleGenerateLicense}
-                  disabled={generatingLicense}
-                  className="px-6 py-3 bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold rounded-lg border border-white/40 transition-all"
-                >
-                  {generatingLicense ? "Génération..." : "Générer"}
-                </button>
-              </div>
+              </button>
             </div>
 
             {/* Licenses Table */}
@@ -489,6 +452,9 @@ export default function Admin() {
                         </th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-foreground/70">
                           Statut
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-semibold text-foreground/70">
+                          Expire le
                         </th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-foreground/70">
                           Utilisée par
@@ -528,6 +494,15 @@ export default function Admin() {
                                 }
                               >
                                 {license.active ? "Active" : "Inactive"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="text-foreground/70 text-sm">
+                                {license.expiresAt && !isNaN(license.expiresAt)
+                                  ? new Date(
+                                      license.expiresAt,
+                                    ).toLocaleDateString()
+                                  : "-"}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -883,6 +858,16 @@ export default function Admin() {
           </>
         )}
       </div>
+
+      {/* Generate License Modal */}
+      {userData && (
+        <GenerateLicenseModal
+          isOpen={showGenerateLicenseModal}
+          onClose={() => setShowGenerateLicenseModal(false)}
+          adminUid={userData.uid}
+          onLicenseGenerated={handleLicenseGenerated}
+        />
+      )}
     </div>
   );
 }

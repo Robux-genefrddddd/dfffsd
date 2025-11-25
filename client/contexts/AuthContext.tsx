@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import {
   SystemNoticesService,
@@ -20,6 +20,8 @@ export interface UserData {
   createdAt: number;
   isAdmin: boolean;
   licenseKey?: string;
+  licenseExpiresAt?: number;
+  lastMessageReset?: number;
 }
 
 interface AuthContextType {
@@ -78,7 +80,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
 
           if (userDocSnap.exists()) {
-            setUserData(userDocSnap.data() as UserData);
+            const userData = userDocSnap.data() as UserData;
+
+            // Trigger daily reset check on server
+            if (userData.licenseKey && userData.lastMessageReset) {
+              try {
+                await fetch("/api/daily-reset", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ userId: authUser.uid }),
+                });
+              } catch (error) {
+                console.error("Error checking daily reset:", error);
+              }
+            }
+
+            // Check if license has expired
+            if (
+              userData.licenseExpiresAt &&
+              userData.licenseExpiresAt <= Date.now()
+            ) {
+              // License expired, reset to Free plan
+              await updateDoc(userDocRef, {
+                plan: "Free",
+                messagesLimit: 10,
+                messagesUsed: 0,
+                licenseKey: "",
+                licenseExpiresAt: undefined,
+              });
+              userData.plan = "Free";
+              userData.messagesLimit = 10;
+              userData.messagesUsed = 0;
+              userData.licenseKey = "";
+              userData.licenseExpiresAt = undefined;
+            }
+
+            setUserData(userData);
           } else {
             // Initialize new user with Free plan
             const newUserData: UserData = {
