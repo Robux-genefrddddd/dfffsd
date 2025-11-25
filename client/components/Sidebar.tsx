@@ -48,7 +48,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
     const newConversation: Conversation = {
       id: newId,
       name: `Conversation ${newId}`,
-      active: false,
+      active: true,
     };
     setConversations([...conversations, newConversation]);
   };
