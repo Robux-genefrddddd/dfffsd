@@ -61,11 +61,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<UserData>>({});
-  const [generatingLicense, setGeneratingLicense] = useState(false);
-  const [selectedPlanForGeneration, setSelectedPlanForGeneration] =
-    useState<PlanType>("Classic");
-  const [validityDaysForGeneration, setValidityDaysForGeneration] =
-    useState<number>(7);
+  const [showGenerateLicenseModal, setShowGenerateLicenseModal] =
+    useState(false);
   const [savingAiConfig, setSavingAiConfig] = useState(false);
   const [userEmailToBan, setUserEmailToBan] = useState("");
   const [banReason, setBanReason] = useState("");
