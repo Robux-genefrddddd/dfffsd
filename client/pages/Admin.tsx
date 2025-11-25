@@ -180,28 +180,8 @@ export default function Admin() {
     }
   };
 
-  const handleGenerateLicense = async () => {
-    if (!userData?.uid) return;
-
-    if (validityDaysForGeneration <= 0) {
-      toast.error("La durée doit être au moins 1 jour");
-      return;
-    }
-
-    setGeneratingLicense(true);
-    try {
-      const newKey = await generateLicenseKey(
-        selectedPlanForGeneration,
-        userData.uid,
-        validityDaysForGeneration,
-      );
-      await loadLicenses();
-      toast.success(`Clé générée: ${newKey}`);
-    } catch (error) {
-      toast.error("Erreur lors de la génération de la clé");
-    } finally {
-      setGeneratingLicense(false);
-    }
+  const handleLicenseGenerated = async () => {
+    await loadLicenses();
   };
 
   const handleCopyLicense = (key: string) => {
