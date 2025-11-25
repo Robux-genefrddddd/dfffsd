@@ -108,6 +108,11 @@ export class IPService {
     userId: string,
     ipAddress: string,
   ): Promise<void> {
+    if (!userId || !ipAddress) {
+      console.warn("updateUserIPLogin called with undefined userId or ipAddress");
+      return;
+    }
+
     try {
       const q = query(
         collection(db, "user_ips"),
