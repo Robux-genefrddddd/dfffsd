@@ -64,6 +64,8 @@ export function LicenseActivationModal({
         messagesLimit: data.messageLimit,
         plan: data.plan,
         licenseKey: licenseKey.trim(),
+        licenseExpiresAt: data.expiresAt,
+        lastMessageReset: Date.now(),
       });
 
       setSuccess(true);
