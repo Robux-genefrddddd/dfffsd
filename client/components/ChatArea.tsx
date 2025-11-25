@@ -67,7 +67,16 @@ export function ChatArea({ conversationId }: ChatAreaProps) {
       setChatMessages(messages);
     } catch (error) {
       console.error("Error loading messages:", error);
-      toast.error("Erreur lors du chargement des messages");
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        if (error.message.includes("Failed to fetch")) {
+          toast.error("Erreur réseau. Vérifiez votre connexion.");
+        } else {
+          toast.error("Erreur lors du chargement des messages");
+        }
+      } else {
+        toast.error("Erreur lors du chargement des messages");
+      }
     } finally {
       setLoadingMessages(false);
     }
