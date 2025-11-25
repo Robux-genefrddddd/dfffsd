@@ -59,7 +59,7 @@ export function ChatArea() {
               }
             }}
             placeholder="Message..."
-            className="flex-1 bg-transparent text-foreground placeholder-foreground/40 focus:outline-none text-sm"
+            className="flex-1 bg-transparent text-foreground placeholder-foreground/50 focus:outline-none text-sm"
           />
 
           {/* Emoji Picker */}
