@@ -177,6 +177,11 @@ export class IPService {
   }
 
   static async getAccountsFromIP(ipAddress: string): Promise<UserIP[]> {
+    if (!ipAddress) {
+      console.warn("getAccountsFromIP called with undefined ipAddress");
+      return [];
+    }
+
     try {
       const q = query(
         collection(db, "user_ips"),
