@@ -377,7 +377,7 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
             ) : (
               warns.map((warn) => (
                 <div
-                  key={warn.id}
+                  key={`warn-${warn.id}`}
                   className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3"
                 >
                   <p className="text-xs text-white font-medium truncate">
