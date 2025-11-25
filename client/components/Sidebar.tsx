@@ -314,22 +314,15 @@ export function Sidebar({
               >
                 <div
                   className={`flex items-center gap-2 px-2 py-2 rounded-lg border-2 transition-all ${
-                    conv.active
+                    conv.id === activeConversationId
                       ? "bg-white/10 border-white"
                       : "border-white/30 hover:border-white/60"
                   }`}
                 >
                   <button
-                    onClick={() =>
-                      setConversations(
-                        conversations.map((c) => ({
-                          ...c,
-                          active: c.id === conv.id,
-                        })),
-                      )
-                    }
+                    onClick={() => onConversationSelect?.(conv.id)}
                     className={`flex-1 text-left text-sm transition-all py-1 px-2 rounded ${
-                      conv.active
+                      conv.id === activeConversationId
                         ? "text-foreground"
                         : "text-foreground/70 hover:text-foreground"
                     }`}
