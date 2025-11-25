@@ -90,12 +90,29 @@ export async function handleActivateLicense(req: Request, res: Response) {
       });
     }
 
+    // Check if license has expired
+    const expiresAt = extractValue(licenseData.expiresAt);
+    if (expiresAt && expiresAt < Date.now()) {
+      return res.status(400).json({
+        message: "Clé de licence expirée",
+      });
+    }
+
     // Extract license plan info
-    const planName = extractValue(licenseData.planName) || "Classic";
-    const messageLimit = extractValue(licenseData.messageLimit) || 100;
+    const plan = extractValue(licenseData.plan) || "Classic";
+    const validityDays = extractValue(licenseData.validityDays) || 7;
+
+    // Plan message limits
+    const planLimits: Record<string, number> = {
+      Free: 10,
+      Classic: 500,
+      Pro: 1000,
+    };
+
+    const messageLimit = planLimits[plan] || 500;
     const licenseId = licenseDoc.name.split("/").pop();
 
-    console.log("License activated:", { planName, messageLimit, licenseId });
+    console.log("License activated:", { plan, messageLimit, licenseId });
 
     // Update user data in Firestore
     const userUpdateQuery = {
