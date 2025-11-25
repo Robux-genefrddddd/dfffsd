@@ -16,15 +16,20 @@ export interface LicenseKey {
   active: boolean;
   createdAt: number;
   createdBy: string;
+  validityDays: number;
+  expiresAt: number;
   usedBy?: string;
   usedAt?: number;
+  lastMessageReset?: number;
 }
 
 export async function generateLicenseKey(
   plan: PlanType,
   adminUid: string,
+  validityDays: number,
 ): Promise<string> {
   const key = `LICENSE-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  const expiresAt = Date.now() + validityDays * 24 * 60 * 60 * 1000;
 
   const licenseData: LicenseKey = {
     key,
@@ -32,6 +37,8 @@ export async function generateLicenseKey(
     active: true,
     createdAt: Date.now(),
     createdBy: adminUid,
+    validityDays,
+    expiresAt,
   };
 
   await setDoc(doc(db, "licenses", key), licenseData);
