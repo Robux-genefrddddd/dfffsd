@@ -200,9 +200,9 @@ export default function AdminBanManagement({ users }: AdminBanManagementProps) {
                 placeholder="user@example.com"
               />
               <datalist id="user-emails">
-                {users.map((user) => (
-                  <option key={user.uid} value={user.email} />
-                ))}
+                {users?.map?.((user) => (
+                  <option key={`user-${user.uid}`} value={user.email} />
+                )) || []}
               </datalist>
             </div>
 
