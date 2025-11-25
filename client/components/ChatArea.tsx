@@ -1,5 +1,8 @@
-import { Send, Smile } from "lucide-react";
-import { useState } from "react";
+import { Send, Smile, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { MessagesService, Message } from "@/lib/messages";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -25,13 +28,70 @@ const EMOJIS = [
 ];
 
 export function ChatArea() {
+  const { user, userData } = useAuth();
   const [message, setMessage] = useState("");
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<
+    string | null
+  >(null);
 
-  const handleSend = () => {
-    if (message.trim()) {
-      console.log("Message sent:", message);
+  useEffect(() => {
+    const initConversation = async () => {
+      if (!user || !userData) return;
+
+      try {
+        const convs = await MessagesService.getConversations(user.uid);
+        if (convs.length === 0) {
+          const newConv = await MessagesService.createConversation(
+            user.uid,
+            "Nouvelle conversation",
+          );
+          setCurrentConversationId(newConv.id);
+        } else {
+          setCurrentConversationId(convs[0].id);
+          const msgs = await MessagesService.getMessages(convs[0].id);
+          setMessages(msgs);
+        }
+      } catch (error) {
+        toast.error("Erreur lors du chargement des conversations");
+      }
+    };
+
+    initConversation();
+  }, [user, userData]);
+
+  const handleSend = async () => {
+    if (!message.trim() || !user || !currentConversationId || !userData) return;
+
+    // Check message limit
+    if (userData.messagesUsed >= userData.messagesLimit) {
+      toast.error("Limite de messages atteinte. Améliorez votre plan.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await MessagesService.addMessage(
+        currentConversationId,
+        user.uid,
+        message,
+      );
+
+      // Update message count
+      await MessagesService.updateUserMessageCount(
+        user.uid,
+        userData.messagesUsed + 1,
+      );
+
       setMessage("");
+      toast.success("Message envoyé");
+    } catch (error) {
+      toast.error("Erreur lors de l'envoi du message");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,7 +101,7 @@ export function ChatArea() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div id="chat-area" className="flex-1 flex flex-col bg-background">
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 animate-fadeIn">
         <div className="text-center">
@@ -57,13 +117,13 @@ export function ChatArea() {
             }}
           />
           <h2 className="text-lg font-semibold text-foreground mb-2 animate-slideUp">
-            Start a conversation
+            Commencez une conversation
           </h2>
           <p
             className="text-sm text-foreground/60 animate-slideUp"
             style={{ animationDelay: "0.1s" }}
           >
-            Type a message below to begin
+            Tapez un message ci-dessous pour commencer
           </p>
         </div>
       </div>
@@ -75,6 +135,7 @@ export function ChatArea() {
       >
         <div className="flex items-center gap-3 border-2 border-white rounded-2xl px-4 py-3 bg-background/50 hover:border-white/80 transition-colors group">
           <input
+            id="message-input"
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -92,8 +153,9 @@ export function ChatArea() {
           <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
             <PopoverTrigger asChild>
               <button
+                id="emoji-btn"
                 className="p-2 text-foreground/60 hover:text-foreground transition-colors hover:bg-foreground/5 rounded-lg"
-                aria-label="Add emoji"
+                aria-label="Ajouter un emoji"
               >
                 <Smile size={18} />
               </button>
@@ -116,10 +178,15 @@ export function ChatArea() {
           {/* Send Button */}
           <button
             onClick={handleSend}
-            className="p-2 text-foreground hover:text-foreground transition-colors hover:bg-foreground/10 rounded-lg flex items-center justify-center hover:scale-110 transform transition-transform"
-            aria-label="Send message"
+            disabled={loading || !message.trim()}
+            className="p-2 text-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:bg-foreground/10 rounded-lg flex items-center justify-center hover:scale-110 transform transition-transform"
+            aria-label="Envoyer le message"
           >
-            <Send size={18} />
+            {loading ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Send size={18} />
+            )}
           </button>
         </div>
       </div>

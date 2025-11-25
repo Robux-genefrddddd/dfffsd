@@ -1,5 +1,17 @@
-import { Plus, LogOut, MoreVertical, Trash2, Edit2 } from "lucide-react";
-import { useState } from "react";
+import {
+  Plus,
+  LogOut,
+  MoreVertical,
+  Trash2,
+  Edit2,
+  Loader2,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -27,30 +39,54 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-type PlanType = "Free" | "Classic" | "Pro";
-
 export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+  const { user, userData, loading } = useAuth();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([
-    { id: 1, name: "New Conversation", active: true },
+    { id: 1, name: "Nouvelle conversation", active: true },
   ]);
-  const [messagesUsed] = useState(7);
-  const [messagesLimit] = useState(15);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [currentPlan] = useState<PlanType>("Pro");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const userInitial = userData?.displayName?.[0]?.toUpperCase() || "U";
+  const messagesUsed = userData?.messagesUsed || 0;
+  const messagesLimit = userData?.messagesLimit || 10;
 
   const handleNewConversation = () => {
     const newId = Math.max(...conversations.map((c) => c.id), 0) + 1;
     const newConversation: Conversation = {
       id: newId,
       name: `Conversation ${newId}`,
-      active: false,
+      active: true,
     };
     setConversations([...conversations, newConversation]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+      toast.success("Déconnecté avec succès");
+    } catch (error) {
+      toast.error("Erreur lors de la déconnexion");
+    }
+  };
+
+  const handleSyncMessages = async () => {
+    setIsSyncing(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success("Messages synchronisés");
+    } catch (error) {
+      toast.error("Erreur de synchronisation");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleDeleteConversation = (id: number) => {
@@ -103,12 +139,14 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           <div className="flex items-center gap-3 mb-2 justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-foreground rounded-full flex items-center justify-center text-background text-sm font-bold border-2 border-white hover:scale-110 transition-transform">
-                N
+                {userInitial}
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Nothing</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {loading ? "..." : userData?.displayName || "Utilisateur"}
+                </p>
                 <p className="text-xs text-white/50 font-medium">
-                  {currentPlan}
+                  {loading ? "..." : userData?.plan || "Free"}
                 </p>
               </div>
             </div>
@@ -127,7 +165,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                     }}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground/70 hover:text-foreground hover:bg-white/10 transition-colors"
                   >
-                    Settings
+                    Paramètres
                   </button>
                   <button
                     onClick={() => {
@@ -136,14 +174,28 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                     }}
                     className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground/70 hover:text-foreground hover:bg-white/10 transition-colors"
                   >
-                    Help
+                    Aide
                   </button>
+                  {userData?.isAdmin && (
+                    <>
+                      <div className="h-px bg-white/10 my-1" />
+                      <button
+                        onClick={() => {
+                          navigate("/admin");
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-white font-semibold hover:bg-white/10 transition-colors"
+                      >
+                        Panneau Admin
+                      </button>
+                    </>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
           </div>
           <p className="text-xs text-foreground/50 truncate">
-            nothing@example.com
+            {loading ? "..." : userData?.email}
           </p>
         </div>
 
@@ -158,16 +210,17 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           style={{ animationDelay: "0.1s" }}
         >
           <button
+            id="new-conversation-btn"
             onClick={handleNewConversation}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-white/40 text-foreground/70 hover:border-white/70 hover:text-foreground hover:bg-white/5 transition-all text-xs font-medium rounded-lg"
           >
             <Plus size={14} />
-            New conversation
+            Nouvelle conversation
           </button>
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div id="conversations-list" className="flex-1 overflow-y-auto p-4">
           <div className="space-y-2">
             {conversations.map((conv, idx) => (
               <div
@@ -229,11 +282,36 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
         {/* Message Usage Section */}
         <div
+          id="messages-counter"
           className="px-4 py-4 border-t border-white/10 animate-fadeIn"
           style={{ animationDelay: "0.25s" }}
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 justify-between">
             <span className="text-xs text-white/70 font-medium">Messages</span>
+            <button
+              onClick={handleSyncMessages}
+              disabled={isSyncing}
+              className="p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-50"
+              title="Synchroniser"
+            >
+              {isSyncing ? (
+                <Loader2 size={14} className="animate-spin text-white/60" />
+              ) : (
+                <svg
+                  className="w-4 h-4 text-white/60 hover:text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
           <div className="space-y-1">
             <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
@@ -243,7 +321,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               ></div>
             </div>
             <p className="text-xs text-white/60">
-              {messagesLimit - messagesUsed} of {messagesLimit} remaining
+              {messagesLimit - messagesUsed} sur {messagesLimit} restants
             </p>
           </div>
         </div>
@@ -253,9 +331,12 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           className="px-4 py-3 border-t border-white/10 animate-fadeIn"
           style={{ animationDelay: "0.3s" }}
         >
-          <button className="w-full flex items-center justify-center gap-2 px-3 py-2 text-foreground/70 hover:text-foreground border-2 border-red-500/50 hover:border-red-500 hover:bg-red-500/10 transition-all text-xs font-medium rounded-lg hover:scale-105 transform">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-foreground/70 hover:text-foreground border-2 border-red-500/50 hover:border-red-500 hover:bg-red-500/10 transition-all text-xs font-medium rounded-lg hover:scale-105 transform"
+          >
             <LogOut size={16} />
-            <span>Sign out</span>
+            <span>Se déconnecter</span>
           </button>
         </div>
       </aside>
@@ -265,7 +346,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <DialogContent className="bg-card border-2 border-white rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              Edit Conversation
+              Modifier la Conversation
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -273,7 +354,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              placeholder="Conversation name..."
+              placeholder="Nom de la conversation..."
               className="w-full bg-background border border-white/30 rounded-lg px-4 py-2 text-foreground placeholder-foreground/40 focus:outline-none focus:border-white transition-colors"
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
@@ -287,13 +368,13 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               onClick={() => setIsDialogOpen(false)}
               className="px-4 py-2 text-foreground/70 border border-white/30 rounded-lg hover:bg-white/5 transition-colors"
             >
-              Cancel
+              Annuler
             </button>
             <button
               onClick={handleSaveEdit}
               className="px-4 py-2 bg-white/20 text-foreground border border-white rounded-lg hover:bg-white/30 transition-colors font-medium"
             >
-              Save
+              Enregistrer
             </button>
           </DialogFooter>
         </DialogContent>

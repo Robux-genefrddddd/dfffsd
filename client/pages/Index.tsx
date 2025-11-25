@@ -1,10 +1,20 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
 import { ChatArea } from "@/components/ChatArea";
-import { Menu } from "lucide-react";
+import { Menu, Loader2 } from "lucide-react";
 
 export default function Index() {
+  const { loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-white" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
